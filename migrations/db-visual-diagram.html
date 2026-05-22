@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Diagrama Base de Datos - ANTES vs DESPUÉS</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.5;
+  }
+  h1 { text-align: center; color: #38bdf8; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; }
+  .panel { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid #334155; }
+  .panel h2 { margin-top: 0; font-size: 18px; padding-bottom: 10px; border-bottom: 2px solid; }
+  .panel.before h2 { color: #f87171; border-color: #f87171; }
+  .panel.after h2 { color: #34d399; border-color: #34d399; }
+  .table-box {
+    background: #0f172a;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .table-header {
+    background: #1e293b;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fbbf24;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .table-row {
+    padding: 6px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid #1e293b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .table-row:last-child { border-bottom: none; }
+  .col-name { color: #cbd5e1; }
+  .col-type { color: #94a3b8; font-size: 11px; }
+  .pk { color: #fbbf24; }
+  .fk { color: #a78bfa; }
+  .drop { color: #f87171; text-decoration: line-through; opacity: 0.6; }
+  .new { color: #34d399; }
+  .arrow { text-align: center; font-size: 24px; color: #64748b; margin: 8px 0; }
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .legend .pk .dot { background: #fbbf24; }
+  .legend .fk .dot { background: #a78bfa; }
+  .legend .drop .dot { background: #f87171; }
+  .legend .new .dot { background: #34d399; }
+  .relations {
+    max-width: 1400px;
+    margin: 30px auto;
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #334155;
+  }
+  .relations h2 { margin-top: 0; color: #38bdf8; font-size: 18px; }
+  .rel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .rel-card {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid #334155;
+  }
+  .rel-card h4 { margin: 0 0 8px 0; color: #e2e8f0; font-size: 14px; }
+  .rel-card p { margin: 0; color: #94a3b8; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>📊 Diagrama Visual de la Base de Datos</h1>
+<div class="subtitle">Comparación: ANTES (actual) vs DESPUÉS (después de la migración)</div>
+
+<div class="legend">
+  <span class="pk"><span class="dot"></span> Clave Primaria (PK)</span>
+  <span class="fk"><span class="dot"></span> Clave Foránea (FK)</span>
+  <span class="drop"><span class="dot"></span> Se elimina</span>
+  <span class="new"><span class="dot"></span> Se añade / Se mantiene</span>
+</div>
+
+<div class="grid">
+
+<!-- ===================== ANTES ===================== -->
+<div class="panel before">
+  <h2>🔴 ANTES (Actual)</h2>
+
+  <div class="table-box">
+    <div class="table-header">🔑 salas</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name new">nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">creado_en</span><span class="col-type">timestamptz</span></div>
+  </div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 perfiles</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK → auth.users</span></div>
+    <div class="table-row"><span class="col-name new">email</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">rol</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">activo</span><span class="col-type">boolean</span></div>
+    <div class="table-row"><span class="col-name new">creado_en</span><span class="col-type">timestamptz</span></div>
+  </div>
+
+  <div class="arrow">⬇️</div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 equipos</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name new">nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">tipo</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">modelo</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name fk">sala_id</span><span class="col-type">uuid → salas</span></div>
+    <div class="table-row"><span class="col-name new">estado</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">ancho_mm</span><span class="col-type">int</span></div>
+    <div class="table-row"><span class="col-name drop">alto_mm</span><span class="col-type">int</span></div>
+    <div class="table-row"><span class="col-name drop">profundidad_mm</span><span class="col-type">int</span></div>
+    <div class="table-row"><span class="col-name new">notas</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">frecuencia_dias</span><span class="col-type">int</span></div>
+    <div class="table-row"><span class="col-name drop">ultimo_mantenimiento</span><span class="col-type">timestamptz</span></div>
+    <div class="table-row"><span class="col-name new">creado_en</span><span class="col-type">timestamptz</span></div>
+  </div>
+
+  <div class="arrow">⬇️</div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 registros</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name fk">maquina_id</span><span class="col-type">uuid → equipos</span></div>
+    <div class="table-row"><span class="col-name">usuario_id</span><span class="col-type">uuid (sin FK)</span></div>
+    <div class="table-row"><span class="col-name drop">maquina_nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">sala_nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">operario_nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">operario_email</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">tipo</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">notas</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">timestamp</span><span class="col-type">timestamptz</span></div>
+    <div class="table-row"><span class="col-name new">resuelta</span><span class="col-type">boolean</span></div>
+    <div class="table-row"><span class="col-name new">en_seguimiento</span><span class="col-type">boolean</span></div>
+    <div class="table-row"><span class="col-name new">comentario_resolucion</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">photos</span><span class="col-type">ARRAY</span></div>
+  </div>
+
+  <div class="arrow">⬇️</div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 seguimientos</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name fk">incidencia_id</span><span class="col-type">uuid → registros</span></div>
+    <div class="table-row"><span class="col-name new">nota</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">usuario_nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">timestamp</span><span class="col-type">timestamptz</span></div>
+    <div class="table-row"><span class="col-name fk">usuario_id</span><span class="col-type">uuid → perfiles</span></div>
+  </div>
+
+  <div class="arrow">⬇️</div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 usuarios_backup</div>
+    <div class="table-row"><span class="col-name drop">id</span><span class="col-type">uuid</span></div>
+    <div class="table-row"><span class="col-name drop">nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">email</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">rol</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name drop">activo</span><span class="col-type">boolean</span></div>
+    <div class="table-row"><span class="col-name drop">creado_en</span><span class="col-type">timestamptz</span></div>
+  </div>
+
+</div>
+
+<!-- ===================== DESPUÉS ===================== -->
+<div class="panel after">
+  <h2>🟢 DESPUÉS (Migración)</h2>
+
+  <div class="table-box">
+    <div class="table-header">🔑 salas</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name new">nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">creado_en</span><span class="col-type">timestamptz</span></div>
+  </div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 perfiles</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK → auth.users</span></div>
+    <div class="table-row"><span class="col-name new">email</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">nombre</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">rol</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">activo</span><span class="col-type">boolean</span></div>
+    <div class="table-row"><span class="col-name new">creado_en</span><span class="col-type">timestamptz</span></div>
+    <div class="table-row" style="background:#064e3b; border-radius:0 0 10px 10px;"><span class="col-name new">📋 RLS: SELECT para auth</span><span class="col-type">todos leen nombre+rol</span></div>
+  </div>
+
+  <div class="arrow">⬇️</div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 equipos</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name new">nombre</span><span class="col-type">text NOT NULL</span></div>
+    <div class="table-row"><span class="col-name new">tipo</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">modelo</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name fk">sala_id</span><span class="col-type">uuid → salas</span></div>
+    <div class="table-row"><span class="col-name new">estado</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">notas</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">creado_en</span><span class="col-type">timestamptz</span></div>
+  </div>
+
+  <div class="arrow">⬇️</div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 registros</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name fk">maquina_id</span><span class="col-type">uuid NOT NULL → equipos</span></div>
+    <div class="table-row"><span class="col-name fk new">usuario_id</span><span class="col-type">uuid → perfiles</span></div>
+    <div class="table-row"><span class="col-name new">tipo</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">notas</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">timestamp</span><span class="col-type">timestamptz</span></div>
+    <div class="table-row"><span class="col-name new">resuelta</span><span class="col-type">boolean</span></div>
+    <div class="table-row"><span class="col-name new">en_seguimiento</span><span class="col-type">boolean</span></div>
+    <div class="table-row"><span class="col-name new">comentario_resolucion</span><span class="col-type">text</span></div>
+    <div class="table-row"><span class="col-name new">photos</span><span class="col-type">ARRAY</span></div>
+  </div>
+
+  <div class="arrow">⬇️</div>
+
+  <div class="table-box">
+    <div class="table-header">🔑 seguimientos</div>
+    <div class="table-row"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+    <div class="table-row"><span class="col-name fk">incidencia_id</span><span class="col-type">uuid NOT NULL → registros</span></div>
+    <div class="table-row"><span class="col-name new">nota</span><span class="col-type">text NOT NULL</span></div>
+    <div class="table-row"><span class="col-name fk">usuario_id</span><span class="col-type">uuid → perfiles</span></div>
+    <div class="table-row"><span class="col-name new">timestamp</span><span class="col-type">timestamptz</span></div>
+  </div>
+
+  <div class="arrow" style="color:#f87171;">🗑️ usuarios_backup ELIMINADA</div>
+
+</div>
+
+</div>
+
+<!-- ===================== RELACIONES ===================== -->
+<div class="relations">
+  <h2>🔗 Relaciones entre tablas</h2>
+  <div class="rel-grid">
+    <div class="rel-card">
+      <h4>auth.users ↔ perfiles</h4>
+      <p>1:1 — Cada usuario de autenticación tiene un perfil. El admin lee nombre y rol de aquí.</p>
+    </div>
+    <div class="rel-card">
+      <h4>salas → equipos</h4>
+      <p>1:N — Una sala tiene muchas máquinas. FK: equipos.sala_id</p>
+    </div>
+    <div class="rel-card">
+      <h4>equipos → registros</h4>
+      <p>1:N — Una máquina tiene muchos registros (incidencias/mantenimiento). FK: registros.maquina_id</p>
+    </div>
+    <div class="rel-card">
+      <h4>perfiles → registros</h4>
+      <p>1:N — Un usuario puede crear muchos registros. FK: registros.usuario_id</p>
+    </div>
+    <div class="rel-card">
+      <h4>registros → seguimientos</h4>
+      <p>1:N — Una incidencia tiene muchas notas de seguimiento. FK: seguimientos.incidencia_id</p>
+    </div>
+    <div class="rel-card">
+      <h4>perfiles → seguimientos</h4>
+      <p>1:N — Un usuario puede escribir muchas notas. FK: seguimientos.usuario_id</p>
+    </div>
+  </div>
+</div>
+
+<div class="relations">
+  <h2>📋 Resumen de cambios</h2>
+  <div class="rel-grid">
+    <div class="rel-card">
+      <h4 style="color:#f87171;">🔴 Se eliminan</h4>
+      <p>
+        • <b>usuarios_backup</b> — tabla residual<br>
+        • <b>equipos:</b> ancho_mm, alto_mm, profundidad_mm, frecuencia_dias, ultimo_mantenimiento<br>
+        • <b>registros:</b> maquina_nombre, sala_nombre, operario_nombre, operario_email<br>
+        • <b>seguimientos:</b> usuario_nombre<br>
+        • <b>Datos:</b> todo el historial de registros y seguimientos
+      </p>
+    </div>
+    <div class="rel-card">
+      <h4 style="color:#34d399;">🟢 Se añaden / mejoran</h4>
+      <p>
+        • <b>FK real</b> en registros.usuario_id → perfiles.id<br>
+        • <b>NOT NULL</b> en registros.maquina_id y seguimientos.incidencia_id<br>
+        • <b>RLS policy</b> en perfiles: todos los auth pueden leer nombre+rol<br>
+        • <b>Nombres</b> se resuelven por JOIN en tiempo real
+      </p>
+    </div>
+    <div class="rel-card">
+      <h4 style="color:#fbbf24;">⚠️ Impacto</h4>
+      <p>
+        • Salas, equipos y perfiles: <b>se preservan</b><br>
+        • Registros y seguimientos: <b>se borran</b> (historial desde cero)<br>
+        • Login superadmin hardcodeado: <b>se elimina</b><br>
+        • Cambiar nombre de máquina/usuario: <b>se refleja automáticamente</b> en todo el historial
+      </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

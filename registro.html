@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Crear Cuenta</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="stylesheet" href="css/mobile.css?v=4">
+  <meta name="description" content="Registro e inicio de sesión de usuarios del sistema de gestión de máquinas">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    :root {
+      --bg: #eef0f2;
+      --bg-card: #ffffff;
+      --bg-input: #ffffff;
+      --text: #2b3440;
+      --text-muted: #7a8897;
+      --accent: #4f8ef7;
+      --accent-2: #7c3aed;
+      --success: #10b981;
+      --danger: #ef4444;
+      --border: #cbd5e1;
+      --border-focus: rgba(79,142,247,0.5);
+    }
+
+    body.dark-mode {
+      --bg: #0f0f1a;
+      --bg-card: #1a1a2e;
+      --bg-input: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --text-muted: #94a3b8;
+      --border: rgba(255,255,255,0.18);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px 60px;
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    /* Background decorations */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -20%;
+      left: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .page-header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .page-logo {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 0 20px rgba(79,142,247,0.5));
+    }
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .page-header p { color: var(--text-muted); font-size: 14px; }
+
+    /* Card */
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+    }
+
+    /* Tabs */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 18px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      transition: color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      background: rgba(79,142,247,0.05);
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    /* Tab panels */
+    .tab-panel { display: none; padding: 24px; }
+    .tab-panel.active { display: block; }
+
+    /* Form fields */
+    .field-group { margin-bottom: 12px; }
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .field-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: 'Inter', system-ui, sans-serif;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .field-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+      background: rgba(255,255,255,0.07);
+    }
+    .field-input::placeholder { color: #94a3b8; }
+
+    /* OTP input */
+    .otp-input {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-align: center;
+      padding: 16px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', system-ui, sans-serif;
+      transition: transform 0.2s, background 0.2s, opacity 0.2s;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { transform: translateY(-2px); background: var(--accent-dark); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-secondary {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', system-ui, sans-serif;
+      transition: border-color 0.2s, color 0.2s;
+      margin-top: 8px;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Messages */
+    .msg {
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+    .msg-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .msg-info { background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3); color: #93c5fd; }
+
+    /* Steps */
+    .step { display: none; }
+    .step.active { display: block; }
+    .step-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .step-subtitle {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success state */
+    .success-icon {
+      font-size: 64px;
+      display: block;
+      text-align: center;
+      margin: 16px 0;
+      animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* Back link */
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    /* Password strength */
+    .password-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* User Info Panel */
+    .user-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .user-role {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .user-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .account-btn {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .account-btn-trigger {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .account-btn-trigger:hover { border-color: var(--accent); color: var(--accent); }
+    .account-btn-trigger svg { width: 16px; height: 16px; }
+    .account-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+      min-width: 200px;
+      overflow: hidden;
+      z-index: 200;
+    }
+    .account-dropdown.open { display: block; }
+    .account-dropdown-info {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .account-dropdown-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .account-dropdown-role {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+    .account-dropdown-email {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .account-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .account-dropdown-item:hover { background: var(--bg); }
+    .account-dropdown-item.danger { color: var(--danger); }
+    .account-dropdown-item.danger:hover { background: rgba(239,68,68,0.08); }
+    .account-dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    .user-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .user-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .user-btn.logout {
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .user-btn.logout:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .theme-toggle {
+      padding: 6px 12px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: #475569;
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    @media (max-width: 500px) {
+      .auth-card { border-radius: 20px; }
+      .tab-panel { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+<script src="js/theme.js"></script>
+
+  <!-- User Info Panel -->
+  <div class="user-panel" id="userPanel">
+    <div class="user-actions">
+      <button class="theme-toggle" id="btnThemeToggle" onclick="toggleTheme()">Tema oscuro</button>
+      <div class="account-btn" id="accountBtn" style="display:none">
+        <button class="account-btn-trigger" onclick="toggleAccountMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Cuenta
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-dropdown-info">
+            <div class="account-dropdown-name" id="dropdownUserName">Usuario</div>
+            <div class="account-dropdown-role" id="dropdownUserRole">Rol</div>
+            <div class="account-dropdown-email" id="dropdownUserEmail">correo@ejemplo.com</div>
+          </div>
+          <button class="account-dropdown-item danger" onclick="cerrarSesion()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-wrapper" style="margin-top: 24px;">
+
+    <!-- Header -->
+    <div class="page-header">
+      <img src="images/logo-brain.png" alt="Logo" style="width: 56px; height: 56px; margin-bottom: 6px;">
+      <h1>Crear cuenta</h1>
+      <p>Sistema de Gestión de Máquinas</p>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="auth-card">
+
+      <!-- ── Panel Registro ── -->
+      <div class="tab-panel active" id="panelRegistro">
+
+        <!-- Step 1: Datos -->
+        <div class="step active" id="regStep1">
+          <div class="step-title">Crear cuenta</div>
+          <div class="step-subtitle">Regístrate con tu correo electrónico. Recibirás un código de verificación para activar tu cuenta.</div>
+
+          <div id="msgReg" class="msg"></div>
+
+          <div class="field-group">
+            <label class="field-label" for="regEmail">Correo electrónico</label>
+            <input class="field-input" type="email" id="regEmail" autocomplete="email">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="regNombre">Nombre completo</label>
+            <input class="field-input" type="text" id="regNombre" autocomplete="name">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="regPassword">Contraseña</label>
+            <input class="field-input" type="password" id="regPassword" autocomplete="new-password"
+              onkeydown="capsLockCheck(event,'capsReg1')" onkeyup="capsLockCheck(event,'capsReg1')"
+              onblur="document.getElementById('capsReg1').style.display='none'">
+            <div id="capsReg1" style="display:none;margin-top:5px;font-size:12px;color:#f59e0b">⚠️ Bloq Mayús activado</div>
+            <div class="password-hint">Usa al menos 8 caracteres con letras y números.</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="regPasswordConfirm">Confirmar contraseña</label>
+            <input class="field-input" type="password" id="regPasswordConfirm"
+              onkeydown="capsLockCheck(event,'capsReg2')" onkeyup="capsLockCheck(event,'capsReg2')"
+              onblur="document.getElementById('capsReg2').style.display='none'">
+            <div id="capsReg2" style="display:none;margin-top:5px;font-size:12px;color:#f59e0b">⚠️ Bloq Mayús activado</div>
+          </div>
+
+          <button class="btn-primary" id="btnRegistrar" onclick="registrar()">
+            Registrarse
+          </button>
+
+          <div style="text-align:center; margin-top:16px; font-size:13px; color:var(--text-muted)">
+            ¿Ya tienes cuenta? <a href="#" onclick="ocultarRegistro(); return false;" style="color:var(--accent); text-decoration:none; font-weight:600">Inicia sesión</a>
+          </div>
+        </div>
+
+        <!-- Step 2: Verificación Link -->
+        <div class="step" id="regStep2">
+          <span class="success-icon" style="font-size:48px; margin-bottom:16px">✉️</span>
+          <div class="step-title" style="text-align:center">Verifica tu email</div>
+          <div class="step-subtitle" id="regOtpSubtitle" style="text-align:center; margin-bottom:24px">
+            Hemos enviado un enlace de confirmación a tu email.
+          </div>
+
+          <div id="msgOtp" class="msg"></div>
+
+          <button class="btn-primary" onclick="ocultarRegistro()">
+            Ir a iniciar sesión
+          </button>
+          <button class="btn-secondary" onclick="reenviarCodigo()" style="margin-top:12px">
+            Reenviar enlace
+          </button>
+        </div>
+
+        <!-- Step 3: Éxito -->
+        <div class="step" id="regStep3">
+          <span class="success-icon">⏳</span>
+          <div class="step-title" style="text-align:center">¡Cuenta creada!</div>
+          <div class="step-subtitle" style="text-align:center">
+            Tu cuenta ha sido registrada correctamente, pero está <strong>pendiente de activación</strong>.
+            <br><br>
+            Un <strong>administrador</strong> debe dar de alta tu cuenta antes de que puedas acceder al sistema. Contacta con tu responsable si es urgente.
+          </div>
+          <button class="btn-primary" onclick="ocultarRegistro()">
+            Iniciar sesión
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // ─── Estado de la app ───
+    let emailRegistro = '';
+
+    // ─── Manejar callback de confirmación de email ───
+    async function procesarConfirmacionEmail() {
+      const hash = window.location.hash;
+      if (!hash || !hash.includes('access_token')) return;
+
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const type = params.get('type');
+
+      if (!accessToken) return;
+
+      // Mostrar mensaje de procesamiento
+      const msgDiv = document.createElement('div');
+      msgDiv.id = 'confirmacion-msg';
+      msgDiv.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: #3b82f6; color: white; padding: 16px; text-align: center; z-index: 9999; font-weight: 500;';
+      msgDiv.textContent = 'Verificando tu cuenta...';
+      document.body.appendChild(msgDiv);
+
+      try {
+        const client = window.supabaseClient || window.supabase?.createClient(
+          'https://qzbzqszxsswpvfxgknjt.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6Ynpxc3p4c3N3cHZmeGdrbmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyODc0NDQsImV4cCI6MjA1Njg2MzQ0NH0.UFw8fhlC4LaDvBFu7CRK6f_FlGqFjPkhgHIH2K6zLNI'
+        );
+
+        // Establecer sesión con el token recibido
+        const { data, error } = await client.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || ''
+        });
+
+        if (error) throw error;
+
+        if (data.session) {
+          const user = data.session.user;
+          const nombre = user.user_metadata?.nombre || user.email?.split('@')[0] || 'Usuario';
+
+          // Crear/actualizar perfil con activo: false y sin rol
+          try {
+            await client.from('perfiles').upsert({
+              id: user.id,
+              email: user.email,
+              nombre: nombre,
+              rol: null, // Sin rol hasta que el admin lo active
+              activo: false
+            }, { onConflict: 'id' });
+          } catch(e) {}
+
+          // Cerrar sesión (el usuario debe esperar a ser dado de alta)
+          await client.auth.signOut();
+
+          // Actualizar mensaje
+          msgDiv.style.background = '#f59e0b';
+          msgDiv.textContent = '✅ Email verificado. Tu cuenta está pendiente de activación por un administrador.';
+
+          // Limpiar URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          // Redirigir al login
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 3000);
+        }
+      } catch (err) {
+        console.error('Error en confirmación:', err);
+        msgDiv.style.background = '#ef4444';
+        msgDiv.textContent = 'Error al verificar: ' + (err.message || 'Inténtalo de nuevo');
+        setTimeout(() => msgDiv.remove(), 5000);
+      }
+    }
+
+    // Ejecutar al cargar
+    document.addEventListener('DOMContentLoaded', procesarConfirmacionEmail);
+
+    function toggleAccountMenu() {
+      document.getElementById('accountDropdown').classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      const btn = document.getElementById('accountBtn');
+      if (btn && !btn.contains(e.target)) {
+        document.getElementById('accountDropdown').classList.remove('open');
+      }
+    });
+
+    // ─── Update user panel ───
+    function updateUserPanel() {
+      try {
+        const sessionStr = localStorage.getItem('sgi_user_session');
+        const adminSessionStr = localStorage.getItem('sgi_admin_session');
+
+        // Verificar si hay sesión de administrador
+        if (adminSessionStr) {
+          const adminSession = JSON.parse(adminSessionStr);
+          const nombre = adminSession.username || adminSession.nombre || 'Administrador';
+          const email = adminSession.email || '';
+          const roleLabelsAdmin = { superadmin: 'Administrador', admin: 'Administrador', tecnico: 'Técnico' };
+          const rolText = roleLabelsAdmin[adminSession.type] || 'Administrador';
+          document.getElementById('dropdownUserName').textContent = nombre;
+          document.getElementById('dropdownUserRole').textContent = rolText;
+          document.getElementById('dropdownUserEmail').textContent = email;
+          document.getElementById('accountBtn').style.display = 'block';
+          return;
+        }
+
+        if (!sessionStr) {
+          document.getElementById('accountBtn').style.display = 'none';
+          return;
+        }
+
+        const session = JSON.parse(sessionStr);
+        const rol = session.rol || 'usuario';
+        const nombre = session.nombre || session.email || 'Usuario';
+        const email = session.email || '';
+        const roleLabels = {
+          'usuario': 'Usuario',
+          'tecnico': 'Técnico',
+          'admin': 'Administrador'
+        };
+        const rolText = roleLabels[rol] || rol;
+        document.getElementById('dropdownUserName').textContent = nombre;
+        document.getElementById('dropdownUserRole').textContent = rolText;
+        document.getElementById('dropdownUserEmail').textContent = email;
+        document.getElementById('accountBtn').style.display = 'block';
+      } catch (err) {
+        console.error('Error updating user panel:', err);
+      }
+    }
+
+    // ── CapsLock ──
+    function capsLockCheck(e, id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = e.getModifierState('CapsLock') ? 'block' : 'none';
+    }
+
+    // ─── Cerrar sesión ───
+    function cerrarSesion() {
+      // Preservar pending_maquinaId para permitir redirección después de nuevo login
+      const pendingMaquinaId = localStorage.getItem('sgi_pending_maquinaId');
+      localStorage.removeItem('sgi_user_session');
+      localStorage.removeItem('sgi_admin_session');
+      // Restaurar pending_maquinaId si existía
+      if (pendingMaquinaId) {
+        localStorage.setItem('sgi_pending_maquinaId', pendingMaquinaId);
+      }
+      window.location.reload();
+    }
+
+    // ─── Ocultar registro (volver a login) ───
+    function ocultarRegistro() {
+      window.location.href = 'index.html';
+    }
+
+    // ─── Mostrar mensaje ───
+    function showMsg(id, texto, tipo = 'error') {
+      const el = document.getElementById(id);
+      el.textContent = texto;
+      el.className = `msg msg-${tipo} show`;
+    }
+    function hideMsg(id) {
+      const el = document.getElementById(id);
+      el.className = 'msg';
+    }
+
+    // ─── Activar step ───
+    function activarStep(panelId, stepId) {
+      document.querySelectorAll(`#${panelId} .step`).forEach(s => s.classList.remove('active'));
+      document.getElementById(stepId).classList.add('active');
+    }
+
+    // ─── Registro ───
+    async function registrar() {
+      const email = document.getElementById('regEmail').value.trim();
+      const nombre = document.getElementById('regNombre').value.trim();
+      const pass = document.getElementById('regPassword').value;
+      const passC = document.getElementById('regPasswordConfirm').value;
+      const btn = document.getElementById('btnRegistrar');
+
+      hideMsg('msgReg');
+
+      if (!email || !nombre) return showMsg('msgReg', '⚠️ Email y nombre son obligatorios.');
+      if (!email.includes('@')) return showMsg('msgReg', '⚠️ Introduce un email válido.');
+      if (pass.length < 8) return showMsg('msgReg', '⚠️ La contraseña debe tener al menos 8 caracteres.');
+      if (pass !== passC) return showMsg('msgReg', '⚠️ Las contraseñas no coinciden.');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Verificando...';
+
+      try {
+        const client = window.supabaseClient;
+        if (!client) throw new Error('No se pudo conectar al servidor.');
+
+        // Verificar si el nombre ya existe
+        const { data: existingUsers, error: checkError } = await client
+          .from('perfiles')
+          .select('nombre')
+          .eq('nombre', nombre)
+          .limit(1);
+
+        if (checkError) throw checkError;
+
+        if (existingUsers && existingUsers.length > 0) {
+          btn.disabled = false;
+          btn.innerHTML = 'Crear cuenta';
+          return showMsg('msgReg', '⚠️ Este nombre de usuario ya está en uso. Por favor, elige otro.');
+        }
+
+        btn.innerHTML = '<span class="spinner"></span> Enviando código...';
+
+        const { data, error } = await client.auth.signUp({
+          email,
+          password: pass,
+          options: {
+            data: { nombre: nombre },
+            emailRedirectTo: window.location.origin + '/adestacion/registro.html'
+          }
+        });
+
+        if (error) throw error;
+
+        // Si el usuario ya viene con sesión (Confirmación de email desactivada en Supabase)
+        if (data.session) {
+          try {
+            await client.from('perfiles').upsert({
+              id: data.user.id,
+              email: email,
+              nombre: nombre,
+              rol: null, // Sin rol hasta que el admin lo active
+              activo: false
+            });
+          } catch(e) {}
+          await client.auth.signOut();
+          activarStep('panelRegistro', 'regStep3');
+        } else {
+          // Guardar email para OTP verification
+          emailRegistro = email;
+          localStorage.setItem('sgi_reg_email', email);
+          localStorage.setItem('sgi_reg_nombre', nombre);
+
+          document.getElementById('regOtpSubtitle').innerHTML =
+            `Hemos enviado un enlace de confirmación a <strong>${email}</strong>.<br><br>
+             Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.<br><br>
+             <strong style="color:var(--text-muted);font-size:11px;">¿No te llega el correo? Contacta con el Administrador.</strong>`;
+
+          activarStep('panelRegistro', 'regStep2');
+        }
+
+      } catch (err) {
+        console.error(err);
+        const msg = err.message?.includes('already registered')
+          ? '⚠️ Este email ya está registrado. Prueba a iniciar sesión.'
+          : '❌ Error: ' + (err.message || 'Inténtalo de nuevo.');
+        showMsg('msgReg', msg);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '📧 Registrarme y recibir enlace';
+    }
+
+
+
+    // ─── Reenviar código ───
+    async function reenviarCodigo() {
+      const email = emailRegistro || localStorage.getItem('sgi_reg_email') || '';
+      if (!email) return;
+
+      try {
+        const client = window.supabaseClient;
+        await client.auth.resend({ type: 'signup', email });
+        showMsg('msgOtp', '✅ Código reenviado. Revisa tu email.', 'success');
+      } catch(e) {
+        showMsg('msgOtp', '❌ No se pudo reenviar: ' + e.message);
+      }
+    }
+
+    // ─── Auto-rellenar email si venimos de registro ───
+    document.addEventListener('DOMContentLoaded', () => {
+      updateUserPanel();
+
+      const savedEmail = localStorage.getItem('sgi_reg_email');
+      if (savedEmail) emailRegistro = savedEmail;
+
+      // Si venimos de un magic link de confirmación, redirigir a index
+      const hash = window.location.hash;
+      if (hash.includes('access_token') || hash.includes('type=signup')) {
+        window.location.href = 'index.html#confirmed';
+      }
+    });
+  </script>
+
+</body>
+</html>

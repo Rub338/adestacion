@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Estado de Equipos</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="stylesheet" href="css/mobile.css?v=4">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #f5f6f8;
+      --surface:   #f9fafb;
+      --row-bg:    #ffffff;
+      --row-alt:   #fbfcfd;
+      --ok:        #00d97e;
+      --ok-bg:     rgba(0, 217, 126, 0.08);
+      --ok-border: rgba(0, 217, 126, 0.18);
+      --err:       #ff3b5c;
+      --err-bg:    rgba(255, 59, 92, 0.08);
+      --err-border:rgba(255, 59, 92, 0.18);
+      --text:      #2b3440;
+      --muted:     #7a8897;
+      --dim:       #6b7fa0;
+      --accent:    #3d8bff;
+      --border:    rgba(30,41,59,0.06);
+      --row-h:     62px;
+      --row-name-fs: 22px;
+      --row-code-fs: 14px;
+    }
+
+    body.dark-mode {
+      --bg:        #0f0f1a;
+      --surface:   #1a1a2e;
+      --row-bg:    #1e1e30;
+      --row-alt:   #2a2a3e;
+      --ok:        #22c55e;
+      --ok-bg:     rgba(34, 197, 94, 0.15);
+      --ok-border: rgba(34, 197, 94, 0.3);
+      --err:       #ef4444;
+      --err-bg:    rgba(239, 68, 68, 0.15);
+      --err-border:rgba(239, 68, 68, 0.3);
+      --text:      #ffffff;
+      --muted:     #94a3b8;
+      --dim:       #64748b;
+      --accent:    #4f8ef7;
+      --border:    rgba(255,255,255,0.08);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+
+    body { display: grid; grid-template-rows: 90px 1fr 6px; }
+
+    /* ══ HEADER ═══════════════════════════════════════════ */
+    header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0;
+      padding: 0 40px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .h-left { display: flex; align-items: center; gap: 16px; }
+    .h-accent {
+      width: 5px; height: 44px;
+      background: linear-gradient(180deg, var(--accent), #7c3aed);
+      border-radius: 4px; flex-shrink: 0;
+    }
+    .h-titles { display: flex; flex-direction: column; gap: 4px; }
+    .h-title  { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+    .h-sala   { font-size: 30px; font-weight: 900; letter-spacing: -.03em; color: var(--text); }
+
+    .h-center { display: flex; justify-content: center; align-items: center; gap: 12px; }
+    .nav-dots { display: flex; gap: 8px; align-items: center; }
+    .ndot {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800;
+      background: rgba(255,255,255,.06); color: var(--muted);
+      border: 1px solid rgba(255,255,255,.08);
+      transition: all .25s; cursor: pointer; user-select: none;
+    }
+    .ndot:hover { background: rgba(255,255,255,.12); color: var(--text); }
+    .ndot.on {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 0 12px var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Botón pause/play */
+    .pause-btn {
+      background: none; border: none;
+      color: var(--muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; flex-shrink: 0;
+      padding: 4px; margin-right: 8px;
+    }
+    .pause-btn:hover { color: var(--text); transform: scale(1.1); }
+    .pause-btn.paused { color: var(--accent); }
+    .pause-btn svg { width: 22px; height: 22px; }
+    
+    /* Botón Volver */
+    .back-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 12px;
+      color: var(--muted); background: transparent;
+      text-decoration: none; transition: all .2s;
+      margin-left: -10px;
+    }
+    .back-btn:hover {
+      color: var(--accent); background: rgba(30,41,59,0.05); transform: translateX(-3px);
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+    .back-btn svg { width: 28px; height: 28px; }
+
+    .h-right { display: flex; align-items: center; gap: 16px; }
+    .chip {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 24px; border-radius: 14px; gap: 2px;
+    }
+    .chip-ok  { background: var(--ok-bg);  color: var(--ok);  border: 1px solid var(--ok-border); }
+    .chip-err { background: var(--err-bg); color: var(--err); border: 1px solid var(--err-border); }
+    .chip-num { font-size: 36px; font-weight: 900; line-height: 1; letter-spacing: -.04em; }
+    .chip-lbl { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+    .chip-ok .chip-num { }
+
+    .h-sep { width: 1px; height: 48px; background: var(--border); }
+    .h-time-block { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .h-time { font-size: 28px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .h-tlbl { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* ══ PANELES ══════════════════════════════════════════ */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .panel {
+      display: flex; flex-direction: column; overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+    .panel:last-child { border-right: none; }
+
+    .panel-hdr {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 20px; height: 48px; flex-shrink: 0;
+      font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-hdr.ok  { background: var(--ok-bg);  color: var(--ok);  border-bottom-color: var(--ok-border); }
+    .panel-hdr.err { background: var(--err-bg); color: var(--err); border-bottom-color: var(--err-border); }
+    .panel-hdr .pdot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+    .panel-hdr.ok .pdot { box-shadow: 0 0 6px var(--ok); }
+    .panel-cnt { margin-left: auto; font-size: 14px; font-weight: 900; opacity: .8; }
+
+    .row-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* ══ FILA DE MÁQUINA ══════════════════════════════════ */
+    .mrow {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 20px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      height: var(--row-h);
+    }
+    .mrow:nth-child(odd)  { background: var(--row-bg); }
+    .mrow:nth-child(even) { background: var(--row-alt); }
+    .mrow.ok  { border-left: 4px solid rgba(0,217,126,.4); }
+    .mrow.err { border-left: 4px solid rgba(255,59,92,.4); opacity: .82; }
+
+    .row-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .ok  .row-dot { background: var(--ok);  box-shadow: 0 0 8px var(--ok); }
+    .err .row-dot { background: var(--err); box-shadow: 0 0 6px var(--err); }
+
+    .row-name {
+      flex: 1; font-weight: 700; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em;
+      font-size: var(--row-name-fs); transition: font-size .3s;
+      min-width: 0;
+    }
+    .err .row-name { color: var(--dim); }
+
+    /* Bloque de info central — toma el espacio sobrante */
+    .row-info {
+      flex: 1; display: flex; flex-direction: column; justify-content: center;
+      gap: 3px; overflow: hidden; padding: 0 4px;
+    }
+    .row-nota {
+      font-weight: 500; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; color: var(--dim);
+    }
+
+    .row-type { font-weight: 600; color: var(--muted); flex-shrink: 0; }
+
+    .row-code {
+      display: none; /* oculto — no significativo para el usuario final */
+    }
+
+    .row-badge {
+      font-size: 12px; font-weight: 800; letter-spacing: .07em;
+      text-transform: uppercase; padding: 5px 12px; border-radius: 6px; flex-shrink: 0;
+    }
+    .badge-err { color: var(--err); background: var(--err-bg); border: 1px solid var(--err-border); }
+
+    .panel-empty {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--muted);
+    }
+
+    /* ══ LOADER / PROGRESS ════════════════════════════════ */
+    #loader {
+      grid-column: 1/-1;
+      display: flex; align-items: center; justify-content: center;
+      gap: 16px; font-size: 16px; color: var(--dim);
+    }
+    .spinner {
+      width: 30px; height: 30px;
+      border: 3px solid rgba(255,255,255,.06);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .progress-track { background: rgba(255,255,255,.05); }
+    #pbar { height: 100%; background: linear-gradient(90deg, var(--accent), #7c3aed); }
+
+    /* ══ RESPONSIVE MÓVIL ═════════════════════════════════ */
+    @media (max-width: 768px) {
+      :root {
+        --row-h:       52px;
+        --row-name-fs: 15px;
+        --row-code-fs: 11px;
+      }
+
+      /* Body en columna con scroll total */
+      html, body { height: auto; overflow: auto; }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+      }
+
+      /* Header compacto */
+      header {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        padding: 10px 16px;
+        height: auto;
+        gap: 6px;
+      }
+      .h-left  { grid-column: 1; grid-row: 1; }
+      .h-right { grid-column: 2; grid-row: 1; align-items: flex-end; }
+      .h-center { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; }
+
+      .h-sala   { font-size: 20px; }
+      .h-title  { font-size: 10px; }
+      .h-accent { height: 32px; }
+      .back-btn { width: 32px; height: 32px; margin-left: -5px; }
+      .back-btn svg { width: 22px; height: 22px; }
+
+      /* Chips más pequeños */
+      .chip { padding: 5px 12px; border-radius: 10px; }
+      .chip-num { font-size: 22px; }
+      .chip-lbl { font-size: 9px; }
+      .h-sep, .h-time-block { display: none; } /* Ocultar reloj en móvil para ganar espacio */
+
+      /* Paneles apilados verticalmente */
+      .panels {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
+        flex: 1;
+      }
+
+      /* Cada panel ocupa su altura natural + scroll propio */
+      .panel {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        overflow: visible;
+        min-height: 0;
+      }
+      .panel:last-child { border-bottom: none; }
+
+      .row-list {
+        overflow: visible;
+        flex: none;
+      }
+
+      /* Filas más compactas */
+      .mrow {
+        padding: 0 14px;
+        gap: 10px;
+        height: auto;
+        min-height: 48px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+      }
+      .row-name  { font-size: 14px !important; white-space: normal; line-height: 1.3; }
+      .row-type  { display: none; }
+      .row-badge { font-size: 10px; padding: 3px 8px; }
+      .row-nota  { font-size: 11px !important; }
+      .panel-hdr { padding: 0 14px; height: 40px; font-size: 11px; }
+
+      /* Barra de progreso al fondo */
+      .progress-track { flex-shrink: 0; height: 4px; }
+
+      /* Nav dots */
+      .ndot { width: 26px; height: 26px; font-size: 12px; }
+    }
+
+    @media (max-width: 480px) {
+      .h-sala   { font-size: 16px; }
+      .chip-num { font-size: 18px; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+</head>
+<body>
+<script src="js/theme.js"></script>
+
+<header>
+  <div class="h-left">
+    <a href="estado.html" class="back-btn" title="Vista de Usuario">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </a>
+    <div class="h-accent"></div>
+    <div class="h-titles">
+      <span class="h-title">Disponibilidad de Equipos</span>
+      <span class="h-sala" id="hSala">—</span>
+    </div>
+  </div>
+  <div class="h-center">
+    <button class="pause-btn" id="pauseBtn" onclick="togglePause()" title="Pausar / Reanudar rotación" style="display:none">
+      <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="6" y="4" width="4" height="16" rx="1.5"/>
+        <rect x="14" y="4" width="4" height="16" rx="1.5"/>
+      </svg>
+    </button>
+    <div class="nav-dots" id="navDots"></div>
+  </div>
+  <div class="h-right">
+    <button class="theme-toggle" id="btnThemeToggle" onclick="toggleTheme()">Tema oscuro</button>
+    <div class="chip chip-ok">
+      <span class="chip-num" id="cntOk">—</span>
+      <span class="chip-lbl">Disponibles</span>
+    </div>
+    <div class="chip chip-err">
+      <span class="chip-num" id="cntErr">—</span>
+      <span class="chip-lbl">Fuera servicio</span>
+    </div>
+    <div class="h-sep"></div>
+    <div class="h-time-block">
+      <span class="h-time" id="hTime">—</span>
+      <span class="h-tlbl">Hora</span>
+    </div>
+  </div>
+</header>
+
+<div class="panels" id="panels">
+  <div id="loader"><div class="spinner"></div> Cargando equipos…</div>
+</div>
+
+<div class="progress-track"><div id="pbar" style="width:0;height:100%"></div></div>
+
+<script>
+  const SLIDE_MS   = 10000;
+  const REFRESH_MS = 30000;
+  const HEADER_H   = 90;
+  const PROG_H     = 6;
+  const PANEL_HDR  = 48;
+
+  let salasArr = [], curIdx = 0, slideTimer = null, paused = false;
+  const ICONS = ['M1','M2','M3','M4','M5','M6'];
+  const iconMap = {};
+
+  /* ── DATOS ──────────────────────────────────────────── */
+  async function loadStatus() {
+    try {
+      if (!window.supabaseClient) { setTimeout(loadStatus, 600); return; }
+      const c = window.supabaseClient;
+
+      const [mRes, iResF, iResN] = await Promise.all([
+        c.from('equipos').select('id,nombre,tipo,modelo,estado,notas,salas(nombre)').order('nombre'),
+        c.from('registros').select('maquina_id,en_seguimiento').eq('tipo','Incidencia').eq('resuelta',false),
+        c.from('registros').select('maquina_id,en_seguimiento').eq('tipo','Incidencia').is('resuelta',null)
+      ]);
+      if (mRes.error) throw mRes.error;
+
+      const incidencias = [...(iResF.data||[]), ...(iResN.data||[])];
+      const enRep = new Set(incidencias.map(i => i.maquina_id));
+      const incidenciaPorMaquina = {};
+      incidencias.forEach(inc => { incidenciaPorMaquina[inc.maquina_id] = inc; });
+      const bySala = {};
+      let totOk = 0, totErr = 0;
+
+      (mRes.data||[]).forEach(m => {
+        const sala = m.salas?.nombre || 'Sin sala';
+        if (!bySala[sala]) bySala[sala] = { ok:[], err:[] };
+        const inactiva   = (m.estado||'').toLowerCase().trim() === 'inactiva';
+        const incidencia = enRep.has(m.id);
+        const enSeguimiento = !!(incidenciaPorMaquina[m.id]?.en_seguimiento);
+        const down       = inactiva || incidencia;
+        const motivo = incidencia
+          ? (enSeguimiento ? 'EN SEGUIMIENTO' : 'SIN RESOLVER')
+          : 'INACTIVA';
+        const entry  = {
+          nombre: m.nombre||'—',
+          tipo: m.tipo||'', notas: m.notas||'',
+          motivo,
+        };
+        if (down) { bySala[sala].err.push(entry); totErr++; }
+        else      { bySala[sala].ok.push(entry);  totOk++;  }
+      });
+
+      document.getElementById('cntOk').textContent  = totOk;
+      document.getElementById('cntErr').textContent = totErr;
+
+      buildSlides(Object.entries(bySala).sort(([a],[b]) => a.localeCompare(b)));
+      document.getElementById('loader').style.display = 'none';
+
+    } catch(e) {
+      console.error(e);
+      document.getElementById('loader').innerHTML =
+        '<span style="color:var(--err)">⚠ Error al cargar. Reintentando…</span>';
+      setTimeout(loadStatus, 10000);
+    }
+  }
+
+  /* ── CAROUSEL ───────────────────────────────────────── */
+  function buildSlides(entries) {
+    salasArr = entries;
+
+    const navEl = document.getElementById('navDots');
+    if (entries.length > 1) {
+      navEl.innerHTML = entries.map((_,i) =>
+        `<div class="ndot${i===curIdx?' on':''}" onclick="goToSlide(${i})">${i+1}</div>`
+      ).join('');
+      document.getElementById('pauseBtn').style.display = 'flex';
+    } else {
+      navEl.innerHTML = '';
+      document.getElementById('pauseBtn').style.display = 'none';
+    }
+
+    entries.forEach(([sala]) => {
+      if (!iconMap[sala]) iconMap[sala] = ICONS[Object.keys(iconMap).length % ICONS.length];
+    });
+
+    showSlide(curIdx);
+    clearInterval(slideTimer);
+    if (entries.length > 1 && !paused) {
+      slideTimer = setInterval(nextSlide, SLIDE_MS);
+      animBar();
+    } else if (entries.length <= 1) {
+      document.getElementById('pbar').style.cssText = 'width:100%;height:100%;transition:none';
+    }
+  }
+
+  function isMobile() { return window.innerWidth <= 768; }
+
+  function showSlide(idx) {
+    if (!salasArr.length) return;
+    curIdx = idx;
+    const [sala, {ok, err}] = salasArr[idx];
+    const total = ok.length + err.length;
+
+    document.getElementById('hSala').textContent = sala;
+
+    const panels = document.getElementById('panels');
+
+    let nameFs, codeFs, typeFs;
+
+    if (isMobile()) {
+      // En móvil el CSS media query se encarga del layout, no sobreescribimos nada
+      panels.style.gridTemplateColumns = '';
+      panels.style.removeProperty('--row-h');
+      panels.style.removeProperty('--row-name-fs');
+      panels.style.removeProperty('--row-code-fs');
+      nameFs = 14; codeFs = 11; typeFs = 11;
+    } else {
+      // Desktop: columnas dinámicas según proporción ok/err, con un mínimo más generoso para evitar recortes
+      const total2 = ok.length + err.length || 1;
+      let errPct = Math.round(err.length / total2 * 100);
+      
+      // Aseguramos un rango entre 40% y 60% para que ninguna columna sea demasiado estrecha si ambas tienen contenido
+      if (ok.length > 0 && err.length > 0) {
+        errPct = Math.max(40, Math.min(60, errPct));
+      } else if (err.length > 0) {
+        errPct = 100; // Si todo está roto, ocupar todo (aunque el layout espera 2 paneles)
+      } else {
+        errPct = 30; // Si no hay errores, el panel vacío puede ser pequeño
+      }
+      
+      const okPct  = 100 - errPct;
+      panels.style.gridTemplateColumns = `${okPct}fr ${errPct}fr`;
+
+      // Altura de fila dinámica
+      const listH  = window.innerHeight - HEADER_H - PROG_H - PANEL_HDR;
+      const maxRows = Math.max(ok.length, err.length, 1);
+      const rowH   = Math.max(44, Math.min(110, Math.floor(listH / maxRows)));
+      nameFs = Math.round(15 + (rowH - 44) * (30 - 15) / (110 - 44));
+      codeFs = Math.round(11 + (rowH - 44) * (16 - 11) / (110 - 44));
+      typeFs = Math.round(11 + (rowH - 44) * (14 - 11) / (110 - 44));
+
+      panels.style.setProperty('--row-h',       rowH   + 'px');
+      panels.style.setProperty('--row-name-fs', nameFs + 'px');
+      panels.style.setProperty('--row-code-fs', codeFs + 'px');
+    }
+
+    panels.innerHTML = panelHTML('ok',  'Disponibles',       ok,  total, nameFs, codeFs, typeFs) +
+                       panelHTML('err', 'Fuera de Servicio', err, total, nameFs, codeFs, typeFs);
+
+    if (!isMobile()) {
+      // Reaplicar tras innerHTML (resetea estilos inline del elemento)
+      const listH  = window.innerHeight - HEADER_H - PROG_H - PANEL_HDR;
+      const maxRows = Math.max(ok.length, err.length, 1);
+      const rowH   = Math.max(44, Math.min(110, Math.floor(listH / maxRows)));
+      panels.style.setProperty('--row-h',       rowH   + 'px');
+      panels.style.setProperty('--row-name-fs', nameFs + 'px');
+      panels.style.setProperty('--row-code-fs', codeFs + 'px');
+    }
+
+    document.querySelectorAll('.ndot').forEach((d,i) => { d.classList.toggle('on', i===idx); });
+  }
+
+  function nextSlide() { if (!paused) { showSlide((curIdx+1) % salasArr.length); animBar(); } }
+
+  function goToSlide(idx) {
+    showSlide(idx);
+    if (!paused) { clearInterval(slideTimer); slideTimer = setInterval(nextSlide, SLIDE_MS); animBar(); }
+  }
+
+  function togglePause() {
+    paused = !paused;
+    const btn  = document.getElementById('pauseBtn');
+    const icon = document.getElementById('pauseIcon');
+    btn.classList.toggle('paused', paused);
+    if (paused) {
+      clearInterval(slideTimer);
+      // Congela la barra en su posición actual
+      const p = document.getElementById('pbar');
+      const w = p.getBoundingClientRect().width / p.parentElement.getBoundingClientRect().width * 100;
+      p.style.cssText = `width:${w.toFixed(1)}%;height:100%;transition:none`;
+      icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+    } else {
+      slideTimer = setInterval(nextSlide, SLIDE_MS);
+      animBar();
+      icon.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/>';
+    }
+  }
+
+  /* ── HTML ───────────────────────────────────────────── */
+  function panelHTML(type, label, machines, total, nameFs, codeFs, typeFs) {
+    const isErr  = type === 'err';
+    const rows   = machines.length
+      ? machines.map(m => rowHTML(m, isErr, nameFs, codeFs, typeFs)).join('')
+      : `<div class="panel-empty">${isErr ? '✓ Todas disponibles' : '— Ninguna fuera de servicio'}</div>`;
+    return `<div class="panel">
+      <div class="panel-hdr ${type}">
+        <div class="pdot"></div>${label}
+        <span class="panel-cnt">${machines.length} / ${total}</span>
+      </div>
+      <div class="row-list">${rows}</div>
+    </div>`;
+  }
+
+  function rowHTML(m, isErr, nameFs, codeFs, typeFs) {
+    const cls   = isErr ? 'err' : 'ok';
+    const badge = isErr ? `<span class="row-badge badge-err">${esc(m.motivo)}</span>` : '';
+    // Bloque de información central: notas
+    let infoHTML = '';
+    if (m.notas) {
+      infoHTML += `<span class="row-nota" style="font-size:${Math.round(nameFs*.6)}px">${esc(m.notas)}</span>`;
+    }
+
+    // Solo inyectar el bloque info si hay contenido real
+    return `<div class="mrow ${cls}">
+      <div class="row-dot"></div>
+      <span class="row-name" style="font-size:${nameFs}px">${esc(m.nombre)}</span>
+      ${infoHTML ? `<div class="row-info">${infoHTML}</div>` : ''}
+      ${m.tipo ? `<span class="row-type" style="font-size:${typeFs}px">${esc(m.tipo)}</span>` : ''}
+      ${badge}
+    </div>`;
+  }
+
+  function esc(s) {
+    const d = document.createElement('div'); d.textContent = String(s||''); return d.innerHTML;
+  }
+
+  function animBar() {
+    const p = document.getElementById('pbar');
+    p.style.cssText = 'width:0%;height:100%;transition:none';
+    p.offsetWidth;
+    p.style.cssText = `width:100%;height:100%;transition:width ${SLIDE_MS}ms linear`;
+  }
+
+  function tick() {
+    document.getElementById('hTime').textContent =
+      new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadStatus();
+    setInterval(loadStatus, REFRESH_MS);
+    setInterval(tick, 1000);
+    tick();
+  });
+</script>
+</body>
+</html>

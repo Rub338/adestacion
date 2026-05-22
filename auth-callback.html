@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Procesando autenticación...</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="stylesheet" href="css/mobile.css?v=4">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --bg: #eef0f2;
+      --card-bg: #ffffff;
+      --text: #2b3440;
+      --text-muted: #7a8897;
+      --accent: #4f8ef7;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    body.dark-mode {
+      --bg: #0f0f1a;
+      --card-bg: #1a1a2e;
+      --text: #e1e8ed;
+      --text-muted: #8b9dc3;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: var(--card-bg);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      z-index: 100;
+    }
+
+    body.dark-mode .theme-toggle {
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      color: var(--text);
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--bg);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 24px auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.success {
+      display: block;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .status.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      display: none;
+    }
+
+    .btn.show {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🔐</div>
+    <h1>Procesando...</h1>
+    <p id="message">Estamos verificando tu solicitud. Por favor, espera un momento.</p>
+    <div class="spinner" id="spinner"></div>
+    <div id="status" class="status"></div>
+    <a href="index.html" id="continueBtn" class="btn">Continuar al inicio</a>
+  </div>
+
+  <script>
+    async function processAuth() {
+      const spinner = document.getElementById('spinner');
+      const message = document.getElementById('message');
+      const status = document.getElementById('status');
+      const continueBtn = document.getElementById('continueBtn');
+
+      try {
+        // Esperar a que Supabase esté listo
+        const client = window.supabaseClient;
+        if (!client) {
+          throw new Error('No se pudo conectar al servidor');
+        }
+
+        // Obtener la sesión de la URL (hash o query params)
+        const { data: { session }, error } = await client.auth.getSession();
+
+        if (error) throw error;
+
+        // Verificar el hash de la URL para recuperación de contraseña
+        const hash = window.location.hash;
+        const params = new URLSearchParams(window.location.search);
+        
+        if (hash.includes('access_token') || params.has('access_token')) {
+          // Es un enlace de confirmación o recuperación
+          
+          // Forzar el perfil a activo: false y rol: null (para evitar que Supabase trigger lo deje activo)
+          try {
+            const { data: { user } } = await client.auth.getUser();
+            if (user) {
+              await client.from('perfiles').upsert({
+                id: user.id,
+                email: user.email,
+                activo: false,
+                rol: null
+              }, { onConflict: 'id' });
+              // Cerrar sesión para que no acceda hasta que el admin lo active
+              await client.auth.signOut();
+            }
+          } catch(e) { console.error('Error updating profile:', e); }
+          
+          message.textContent = '¡Verificación completada!';
+          status.textContent = 'Tu email ha sido confirmado, pero tu cuenta está pendiente de activación por un administrador.';
+          status.className = 'status success';
+          continueBtn.classList.add('show');
+          
+          // Redirigir automáticamente después de 3 segundos
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 3000);
+          return;
+        }
+
+        if (hash.includes('type=recovery')) {
+          // Es recuperación de contraseña - redirigir a la página de cambio
+          message.textContent = 'Redirigiendo...';
+          window.location.href = 'reset-password.html' + window.location.hash;
+          return;
+        }
+
+        if (session) {
+          // Ya hay sesión activa
+          message.textContent = '¡Bienvenido!';
+          status.textContent = 'Sesión iniciada correctamente.';
+          status.className = 'status success';
+          continueBtn.classList.add('show');
+          
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 2000);
+        } else {
+          // No hay token válido
+          throw new Error('El enlace ha expirado o no es válido');
+        }
+
+      } catch (err) {
+        spinner.style.display = 'none';
+        message.textContent = 'Ha ocurrido un error';
+        status.textContent = err.message || 'El enlace ha expirado o no es válido. Por favor, solicita uno nuevo.';
+        status.className = 'status error';
+        continueBtn.classList.add('show');
+        continueBtn.textContent = 'Volver al inicio';
+      }
+    }
+
+    // Procesar cuando la página cargue
+    window.addEventListener('load', processAuth);
+  </script>
+
+  <script src="js/theme.js"></script>
+</body>
+</html>

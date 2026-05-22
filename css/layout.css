@@ -1,0 +1,349 @@
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  transition: width var(--transition-smooth);
+}
+
+body.sidebar-collapsed .sidebar {
+  width: 76px;
+}
+
+body.sidebar-collapsed .sidebar-brand h1,
+body.sidebar-collapsed .sidebar-brand p,
+body.sidebar-collapsed .nav-text,
+body.sidebar-collapsed .sidebar-legend,
+body.sidebar-collapsed .sidebar-footer {
+  display: none !important;
+}
+
+body.sidebar-collapsed .sidebar-brand {
+  padding: 24px 10px 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+body.sidebar-collapsed .sidebar-brand .logo {
+  margin: 0;
+  gap: 0;
+}
+
+body.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 10px;
+}
+
+body.sidebar-collapsed .nav-item .nav-icon {
+  margin: 0;
+  font-size: 20px;
+}
+
+body.sidebar-collapsed .nav-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(30%, -30%);
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  font-size: 9px;
+  padding: 0;
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 99;
+}
+
+.sidebar-backdrop.open {
+  display: block;
+}
+
+.sidebar-brand {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-brand .logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.sidebar-brand .logo-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.sidebar-brand h1 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sidebar-brand p {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+.nav-section {
+  margin-bottom: 24px;
+}
+
+.nav-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 0 8px;
+  margin-bottom: 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  margin-bottom: 4px;
+  position: relative;
+  transition: all var(--transition);
+}
+
+.nav-item:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border-color: var(--border-accent);
+}
+
+.nav-item .nav-icon {
+  font-size: 18px;
+  width: 22px;
+  text-align: center;
+}
+
+.nav-badge {
+  margin-left: auto;
+  background: #dc2626;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 0 6px;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Main content ────────────────────────────────────────────────────────── */
+.main {
+  margin-left: 280px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  transition: margin-left var(--transition-smooth);
+}
+
+body.sidebar-collapsed .main {
+  margin-left: 76px;
+}
+
+.topbar {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+}
+
+.topbar-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.account-btn {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.account-btn-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid rgba(30, 41, 59, 0.28);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.account-btn-trigger:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.account-btn-trigger svg {
+  width: 16px;
+  height: 16px;
+}
+
+.account-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 200;
+}
+
+.account-dropdown.open {
+  display: block;
+}
+
+.account-dropdown-info {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.account-dropdown-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.account-dropdown-role {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 2px;
+}
+
+.account-dropdown-email {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.account-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.account-dropdown-item:hover {
+  background: var(--bg-secondary);
+}
+
+.account-dropdown-item.danger {
+  color: var(--danger);
+}
+
+.account-dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.account-dropdown-item svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.page-content {
+  padding: 32px;
+  flex: 1;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}

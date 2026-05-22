@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Panel Admin</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <meta name="description" content="Sistema de gestión de incidencias para máquinas">
+  <link rel="stylesheet" href="css/variables.css?v=5.0">
+  <link rel="stylesheet" href="css/reset.css?v=5.0">
+  <link rel="stylesheet" href="css/layout.css?v=5.0">
+  <link rel="stylesheet" href="css/components.css?v=5.0">
+  <link rel="stylesheet" href="css/utilities.css?v=5.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+  <script src="js/theme.js?v=6.0"></script>
+  <script src="js/dashboard-ui.js?v=6.0"></script>
+  <!-- Módulos JS modulares -->
+  <script src="js/config.js?v=6.0"></script>
+  <script src="js/auth.js?v=6.0"></script>
+  <script src="js/utils.js?v=6.0"></script>
+  <script src="js/api.js?v=6.0"></script>
+  <script src="js/data.js?v=6.0"></script>
+  <script src="js/navigation.js?v=6.0"></script>
+  <script src="js/dashboard.js?v=6.0"></script>
+  <script src="js/modals.js?v=6.0"></script>
+  <script src="js/incidencias.js?v=6.0"></script>
+  <script src="js/maquinas.js?v=6.0"></script>
+  <script src="js/qrcodes.js?v=6.0"></script>
+  <script src="js/usuarios.js?v=6.0"></script>
+  <script src="js/salas.js?v=6.0"></script>
+  <script src="js/tour.js?v=6.0"></script>
+  <script src="js/main.js?v=6.0"></script>
+  <script>
+    // ── Guard de Seguridad Instantáneo ──
+    (function() {
+      const session = localStorage.getItem('sgi_admin_session');
+      if (!session) {
+        document.documentElement.classList.add('auth-locked');
+      }
+    })();
+  </script>
+  <style>
+    .auth-locked #dashboardContent { display: none !important; }
+    .auth-locked .admin-login-overlay { display: flex !important; opacity: 1 !important; visibility: visible !important; }
+
+    .maquina-card.active-inc {
+      border: 2px solid var(--success) !important;
+      box-shadow: 0 0 0 1px var(--success), 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+    }
+
+    .admin-login-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 12px 48px rgba(30,41,59,0.08);
+    }
+    .login-icon { font-size: 52px; display: block; margin-bottom: 20px; }
+    .login-card h2 { font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
+    .login-card > p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+    .login-field {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text-primary);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .login-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,0.1); }
+    .login-field::placeholder { color: var(--text-muted); }
+    .btn-login {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s, opacity 0.2s;
+      margin-top: 8px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .btn-login:hover { transform: translateY(-2px); background: var(--accent-dark); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .login-error { color: #ef4444; font-size: 13px; margin-top: 14px; min-height: 20px; }
+    .login-link { margin-top: 24px; font-size: 13px; color: #64748b; }
+    .login-link a { color: #4f8ef7; text-decoration: none; font-weight: 600; }
+    .login-link a:hover { text-decoration: underline; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%,60%{transform:translateX(-8px)}
+      40%,80%{transform:translateX(8px)}
+    }
+    .shake { animation: shake 0.4s ease; }
+  </style>
+</head>
+
+<body>
+  
+  <!-- ── Admin Login Overlay ── -->
+  <div class="admin-login-overlay" id="adminLoginOverlay">
+    <div class="login-card" id="loginCard">
+      <span class="login-icon">🔐</span>
+      <h2>Acceso Administración</h2>
+      <p>Introduce tus credenciales de administrador o técnico para continuar</p>
+      <input type="text" id="adminUsernameInput" class="login-field"
+        autocomplete="username">
+      <input type="password" id="adminPinInput" class="login-field"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') intentarLogin(); capsLockCheck(event,'capsAdmin')"
+        onkeyup="capsLockCheck(event,'capsAdmin')"
+        onblur="document.getElementById('capsAdmin').style.display='none'">
+      <div id="capsAdmin" style="display:none;margin-top:5px;font-size:12px;color:#f59e0b">⚠️ Bloq Mayús activado</div>
+      <button class="btn-login" id="btnLoginAdmin" onclick="intentarLogin()">🔓 Entrar al Panel</button>
+      <div id="loginError" class="login-error"></div>
+      <div class="login-link">
+        <a href="index.html">Ir a inicio →</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function capsLockCheck(e, id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = e.getModifierState('CapsLock') ? 'block' : 'none';
+    }
+  </script>
+
+  <!-- El contenido se inyecta dinámicamente aquí por seguridad -->
+  <div id="dashboardContent"></div>
+
+</body>
+
+</html>
