@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Estado de Equipos</title>
   <link rel="icon" type="image/png" href="images/favicon.png">
-  <link rel="stylesheet" href="css/mobile.css?v=4">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -49,13 +48,18 @@
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-    html, body {
+    html {
+      height: 100%; overflow: hidden;
+      margin: 0; padding: 0;
+    }
+    body {
       height: 100%; overflow: hidden;
       font-family: 'Inter', sans-serif;
       background: var(--bg); color: var(--text);
+      margin: 0; padding: 0;
     }
 
-    body { display: grid; grid-template-rows: 90px 1fr 6px; }
+    body { display: grid; grid-template-rows: 80px 1fr 6px; }
 
     /* ══ HEADER ═══════════════════════════════════════════ */
     header {
@@ -66,6 +70,7 @@
       padding: 0 40px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
+      height: 80px;
     }
 
     .h-left { display: flex; align-items: center; gap: 16px; }
@@ -185,7 +190,7 @@
     .panel-hdr.ok .pdot { box-shadow: 0 0 6px var(--ok); }
     .panel-cnt { margin-left: auto; font-size: 14px; font-weight: 900; opacity: .8; }
 
-    .row-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .row-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
 
     /* ══ FILA DE MÁQUINA ══════════════════════════════════ */
     .mrow {
@@ -400,7 +405,7 @@
 <script>
   const SLIDE_MS   = 10000;
   const REFRESH_MS = 30000;
-  const HEADER_H   = 90;
+  const HEADER_H   = 80;
   const PROG_H     = 6;
   const PANEL_HDR  = 48;
 

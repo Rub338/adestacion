@@ -318,7 +318,7 @@ body.sidebar-collapsed .main {
 }
 
 .account-dropdown-item:hover {
-  background: var(--bg-secondary);
+  background: var(--bg-card-hover);
 }
 
 .account-dropdown-item.danger {
